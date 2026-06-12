@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --color-accent: #4f7cff;
+  --color-accent-hover: #3b66e8;
+}
+
+:root {
+  --bg-app: #f4f5f7;
+  --bg-panel: #ffffff;
+  --bg-subtle: #eef0f3;
+  --bg-canvas: #e8eaee;
+  --border: #e2e4e9;
+  --text-1: #1a1d23;
+  --text-2: #5c6370;
+  --text-3: #9aa1ad;
+}
+
+.dark {
+  --bg-app: #16181d;
+  --bg-panel: #1e2128;
+  --bg-subtle: #262a33;
+  --bg-canvas: #0f1115;
+  --border: #2e333d;
+  --text-1: #e8eaee;
+  --text-2: #a8aeb9;
+  --text-3: #6b7280;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-3) transparent;
+}
+
+/* ---- shared UI primitives ---- */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer select-none;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-1);
+}
+.btn:hover { background: var(--bg-subtle); }
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer select-none;
+  background: var(--color-accent);
+  color: #fff;
+  border: 1px solid transparent;
+}
+.btn-primary:hover { background: var(--color-accent-hover); }
+
+.input {
+  @apply rounded-md px-2 py-1 text-xs w-full outline-none;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+}
+.input:focus { border-color: var(--color-accent); }
+
+select.input { @apply cursor-pointer; }
+
+.label {
+  @apply block text-[11px] font-medium mb-1;
+  color: var(--text-2);
+}
+
+.section-title {
+  @apply text-[11px] font-semibold uppercase tracking-wider px-3 pt-3 pb-1.5;
+  color: var(--text-3);
+}
+
+.tool-btn {
+  @apply flex items-center justify-center w-8 h-8 rounded-md cursor-pointer transition-colors;
+  color: var(--text-2);
+}
+.tool-btn:hover { background: var(--bg-subtle); color: var(--text-1); }
+.tool-btn.active { background: var(--color-accent); color: #fff; }
