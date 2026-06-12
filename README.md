@@ -7,12 +7,16 @@
 **Publication-quality scientific plotting in your browser**
 **浏览器里的论文级科研绘图工具**
 
+**🌐 在线演示：** [https://wb666706.github.io/sciplot/](https://wb666706.github.io/sciplot/)
+
 [![Build](https://img.shields.io/badge/build-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![ECharts](https://img.shields.io/badge/ECharts-6-AA344D?logo=apacheecharts&logoColor=white)](https://echarts.apache.org)
 
 [English](#english) · [中文](#中文)
+
+**🌐 Live demo:** [https://wb666706.github.io/sciplot/](https://wb666706.github.io/sciplot/)
 
 </div>
 
