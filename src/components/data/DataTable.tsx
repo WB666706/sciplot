@@ -10,7 +10,11 @@ export function DataTable({ dataset }: { dataset: Dataset }) {
   const addRow = useStore((s) => s.addRow);
   const addColumn = useStore((s) => s.addColumn);
   const deleteRow = useStore((s) => s.deleteRow);
+  const deleteColumn = useStore((s) => s.deleteColumn);
+  const sortByColumn = useStore((s) => s.sortByColumn);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [selectedCol, setSelectedCol] = useState<number | null>(null);
+  const [sortState, setSortState] = useState<{ col: number; asc: boolean } | null>(null);
 
   const commitCell = (row: number, col: number, raw: string) => {
     const trimmed = raw.trim();
@@ -22,9 +26,15 @@ export function DataTable({ dataset }: { dataset: Dataset }) {
     updateCell(dataset.id, row, col, Number.isFinite(n) ? n : trimmed);
   };
 
+  const onSort = (col: number) => {
+    const asc = sortState?.col === col ? !sortState.asc : true;
+    setSortState({ col, asc });
+    sortByColumn(dataset.id, col, asc);
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-0 border-t" style={{ borderColor: 'var(--border)' }}>
-      <div className="flex items-center gap-1.5 px-3 py-1.5">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 flex-wrap">
         <button className="btn !px-2 !py-1 text-[11px]" onClick={() => addRow(dataset.id)}>
           + {t('data.addRow')}
         </button>
@@ -42,6 +52,17 @@ export function DataTable({ dataset }: { dataset: Dataset }) {
             {t('data.delRow')}
           </button>
         )}
+        {selectedCol !== null && dataset.columns.length > 1 && (
+          <button
+            className="btn !px-2 !py-1 text-[11px] !text-red-500"
+            onClick={() => {
+              deleteColumn(dataset.id, selectedCol);
+              setSelectedCol(null);
+            }}
+          >
+            {t('data.delCol')}
+          </button>
+        )}
       </div>
       <div className="flex-1 overflow-auto px-1 pb-1">
         <table className="border-collapse w-full text-[11px]">
@@ -57,18 +78,32 @@ export function DataTable({ dataset }: { dataset: Dataset }) {
                 <th
                   key={ci}
                   className="border p-0 min-w-16"
-                  style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border)' }}
+                  style={{
+                    background: selectedCol === ci ? 'color-mix(in srgb, var(--color-accent) 18%, var(--bg-subtle))' : 'var(--bg-subtle)',
+                    borderColor: 'var(--border)',
+                  }}
                 >
-                  <input
-                    className="w-full px-1.5 py-1 font-semibold text-[11px] bg-transparent outline-none text-center"
-                    style={{ color: 'var(--text-1)' }}
-                    defaultValue={c}
-                    key={`${dataset.id}-${ci}-${c}`}
-                    onBlur={(e) => updateColumnName(dataset.id, ci, e.target.value || c)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                    }}
-                  />
+                  <div className="flex items-center">
+                    <input
+                      className="w-full px-1.5 py-1 font-semibold text-[11px] bg-transparent outline-none text-center min-w-0"
+                      style={{ color: 'var(--text-1)' }}
+                      defaultValue={c}
+                      key={`${dataset.id}-${ci}-${c}`}
+                      onFocus={() => setSelectedCol(ci)}
+                      onBlur={(e) => updateColumnName(dataset.id, ci, e.target.value || c)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                      }}
+                    />
+                    <button
+                      className="px-0.5 text-[9px] shrink-0 cursor-pointer"
+                      style={{ color: sortState?.col === ci ? 'var(--color-accent)' : 'var(--text-3)' }}
+                      title={t('data.sort')}
+                      onClick={() => onSort(ci)}
+                    >
+                      {sortState?.col === ci ? (sortState.asc ? '▲' : '▼') : '⇅'}
+                    </button>
+                  </div>
                 </th>
               ))}
             </tr>
@@ -80,7 +115,7 @@ export function DataTable({ dataset }: { dataset: Dataset }) {
                   className="px-1 py-0.5 text-center text-[10px] border cursor-pointer select-none"
                   style={{
                     borderColor: 'var(--border)',
-                    color: 'var(--text-3)',
+                    color: selectedRow === ri ? '#fff' : 'var(--text-3)',
                     background: selectedRow === ri ? 'var(--color-accent)' : 'var(--bg-subtle)',
                   }}
                   onClick={() => setSelectedRow(selectedRow === ri ? null : ri)}

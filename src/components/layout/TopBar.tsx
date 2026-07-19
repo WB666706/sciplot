@@ -1,18 +1,54 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { GITHUB_REPO } from '../../config';
 import { useStore } from '../../store/useStore';
+
+function useUndoRedo() {
+  const temporal = useStore.temporal;
+  const { pastStates, futureStates } = useStoreWithEqualityFn(
+    temporal,
+    (s) => ({ pastStates: s.pastStates, futureStates: s.futureStates }),
+    (a, b) => a.pastStates.length === b.pastStates.length && a.futureStates.length === b.futureStates.length,
+  );
+  return {
+    canUndo: pastStates.length > 0,
+    canRedo: futureStates.length > 0,
+    undo: () => temporal.getState().undo(),
+    redo: () => temporal.getState().redo(),
+  };
+}
 
 export function TopBar() {
   const { t, i18n } = useTranslation();
   const mode = useStore((s) => s.mode);
   const setMode = useStore((s) => s.setMode);
   const [dark, setDark] = useState(() => localStorage.getItem('sciplot-theme') === 'dark');
+  const { canUndo, canRedo, undo, redo } = useUndoRedo();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem('sciplot-theme', dark ? 'dark' : 'light');
   }, [dark]);
+
+  // Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      if (e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if (e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [undo, redo]);
 
   const toggleLang = () => {
     const next = i18n.language === 'zh' ? 'en' : 'zh';
@@ -56,6 +92,34 @@ export function TopBar() {
             {t(`mode.${m}`)}
           </button>
         ))}
+      </div>
+
+      {/* undo / redo */}
+      <div className="flex items-center gap-0.5 ml-2">
+        <button
+          className="tool-btn"
+          title={`${t('app.undo')} (Ctrl+Z)`}
+          disabled={!canUndo}
+          style={{ opacity: canUndo ? 1 : 0.35 }}
+          onClick={undo}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 14L4 9l5-5" />
+            <path d="M4 9h10.5a5.5 5.5 0 010 11H11" />
+          </svg>
+        </button>
+        <button
+          className="tool-btn"
+          title={`${t('app.redo')} (Ctrl+Y)`}
+          disabled={!canRedo}
+          style={{ opacity: canRedo ? 1 : 0.35 }}
+          onClick={redo}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 14l5-5-5-5" />
+            <path d="M20 9H9.5a5.5 5.5 0 000 11H13" />
+          </svg>
+        </button>
       </div>
 
       <div className="flex-1" />

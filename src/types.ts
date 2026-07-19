@@ -11,7 +11,9 @@ export type ChartType =
   | 'line'
   | 'scatter'
   | 'bar'
+  | 'barh'
   | 'area'
+  | 'pie'
   | 'box'
   | 'violin'
   | 'histogram'
@@ -21,6 +23,11 @@ export type ChartType =
   | 'radar'
   | 'polar';
 
+export type LineStyleKind = 'solid' | 'dashed' | 'dotted';
+export type SymbolKind = 'circle' | 'rect' | 'triangle' | 'diamond' | 'emptyCircle' | 'none';
+export type TrendlineKind = 'none' | 'linear' | 'movingAverage';
+export type ErrorDisplay = 'bars' | 'band';
+
 export interface SeriesMapping {
   id: string;
   datasetId: string;
@@ -29,11 +36,19 @@ export interface SeriesMapping {
   yCol: number;
   errCol: number; // -1 = none
   groupCol: number; // -1 = none
+  sizeCol: number; // -1 = none (bubble size for scatter)
   y2: boolean; // map to secondary y axis
-  color?: string;
+  // per-series style overrides ('' / 0 = follow global)
+  color: string; // '' = auto palette
+  lineStyle: LineStyleKind;
+  symbol: SymbolKind | ''; // '' = follow global
+  opacity: number; // 0.1–1
+  trendline: TrendlineKind;
+  errorDisplay: ErrorDisplay;
 }
 
 export type AxisScale = 'linear' | 'log';
+export type TickFormat = 'auto' | 'fixed0' | 'fixed1' | 'fixed2' | 'scientific' | 'percent';
 
 export interface AxisConfig {
   label: string;
@@ -42,27 +57,41 @@ export interface AxisConfig {
   max: string;
   tickInside: boolean;
   showGrid: boolean;
+  labelRotate: number; // degrees
+  tickFormat: TickFormat;
 }
 
+export type LegendPosition = 'top' | 'bottom' | 'right' | 'insideTopLeft' | 'insideTopRight';
+
 export interface ChartStyle {
+  theme: string; // theme preset id
   fontFamily: string;
   fontSize: number;
+  titleSize: number;
   lineWidth: number;
   symbolSize: number;
   showSymbols: boolean;
   smooth: boolean;
+  step: boolean;
   palette: string;
   showLegend: boolean;
-  legendPosition: 'top' | 'bottom' | 'right';
+  legendPosition: LegendPosition;
   barGap: number; // percent
   stack: boolean;
+  percentStack: boolean;
+  barBorderRadius: number;
   histogramBins: number;
+  pieDonut: number; // 0 = pie, 0.3–0.7 = donut inner radius ratio
+  pieShowLabels: boolean;
+  showDataLabels: boolean;
+  boxShowPoints: boolean; // jittered raw points over box/violin
 }
 
 export interface ChartConfig {
   id: string;
   type: ChartType;
   title: string;
+  subtitle: string;
   series: SeriesMapping[];
   xAxis: AxisConfig;
   yAxis: AxisConfig;
@@ -113,7 +142,7 @@ export interface JournalPreset {
 
 export interface ProjectFile {
   app: 'sciplot';
-  version: 1;
+  version: 1 | 2;
   datasets: Dataset[];
   charts: ChartConfig[];
   layout: FigureLayout;
